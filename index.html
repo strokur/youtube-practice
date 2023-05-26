@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube API Project</title>
+    <style>
+        * {
+            margin: 5px;
+            padding: 0px;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+        body {
+            width: 100%;
+            text-align: center;
+        }
+        #search-bar {
+            width: 40%;
+            height: 30px;
+            margin: 30px 0px;
+        }
+        #video-container {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            text-align: left;
+        }
+        .video-div {
+            min-width: 100px;
+            width: 250px; 
+        }
+        img {
+            width: 90%;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <form id="search-form">
+        <input type="text" placeholder="Search" id="search-bar"/>
+    </form>
+    <div id="video-container"></div>
+
+    <script>
+        var searchForm = document.querySelector("#search-form");
+        searchForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    res = JSON.parse(xhttp.responseText);
+                    data = res.items.map(item => item.snippet);
+                    var container = document.querySelector("#video-container");
+                    data.forEach(video => {
+                        var videoDiv = document.createElement("div");
+                        videoDiv.classList.add("video-div")
+                        var videoAge = calculateTimeElapsed(video.publishTime);
+                        videoDiv.innerHTML = `
+                            <img src="${video.thumbnails.high.url}" />
+                            <h4>${video.title}</h4>
+                            <p>${video.channelTitle}</p>
+                            <p>${videoAge}</p>
+                        `;
+                        container.appendChild(videoDiv);
+                });
+                }
+            };
+//            var searchQuery = `&q=${document.querySelector("#search-bar").value}`;
+            var searchQuery = document.querySelector("#search-bar").value;
+            xhttp.open("GET", `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${searchQuery}&maxResults=10&type=video&videoCaption=closedCaption&key=AIzaSyB6DKpsl0sl0jJ6il6o5H0wy06ezqzgRK4`, true);
+            xhttp.send();
+        });
+
+function calculateTimeElapsed(dateTimeString) {
+  var startTime = new Date(dateTimeString);
+  var currentTime = new Date();
+  var timeElapsed = currentTime - startTime;
+  
+  var minute = 60 * 1000;
+  var hour = 60 * minute;
+  var day = 24 * hour;
+  var week = 7 * day;
+  var month = 30 * day;
+  var year = 365 * day;
+  
+  if (timeElapsed >= year) {
+    return Math.floor(timeElapsed / year) + 'y';
+  } else if (timeElapsed >= month) {
+    return Math.floor(timeElapsed / month) + 'mo';
+  } else if (timeElapsed >= week) {
+    return Math.floor(timeElapsed / week) + 'w';
+  } else if (timeElapsed >= day) {
+    return Math.floor(timeElapsed / day) + 'd';
+  } else if (timeElapsed >= hour) {
+    return Math.floor(timeElapsed / hour) + 'h';
+  } else {
+    return Math.floor(timeElapsed / minute) + 'm';
+  }
+}
+    </script>
+</body>
+</html>
